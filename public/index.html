@@ -18,17 +18,6 @@
       .aligner {
         text-align: center;
       }
-      #drop {
-        height: 300px;
-        line-height: 300px;
-        width: 300px;
-        border-radius: 150px;
-        margin-left: auto;
-        margin-right: auto;
-        background-color: #f60;
-        color: #fff;
-        text-align: center;
-      }
       .b-example-divider {
         height: 3rem;
         background-color: rgba(0, 0, 0, 0.1);
@@ -46,13 +35,11 @@
     </style>
   </head>
 
-    <div class="px-4 py-5 my-5 text-center">
-      <img class="d-block mx-auto mb-4" src="bench_engine.png" alt="" width="180">
-      <h1 class="display-5 fw-bold">Bench Engine</h1>
+    <div class="px-1 pt-1 mt-1 text-center">
+      <img src="https://i.ibb.co/gMXfGfS/bench-engine.png" alt="bench-engine"
+      border="0" width="180" class="d-block mx-auto"></a>
+      <h1 class="display-6 fw-light">Bench Engine</h1>
     </div>
-
-    <!-- subsection divider -->
-    <div class="b-example-divider"></div>
 
     <div class="px-4 py-5 my-5 text-center">
       <h1 class="display-5 fw-bold">Audio file transcription accuracy benchmarking</h1>
@@ -65,53 +52,48 @@
 
         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-3">
           <div class="mb-3">
-            <label for="formFileSm" class="form-label">File to benchmark</label>
-            <input class="form-control" id="formFileSm" type="file">
+            <label for="file-to-benchmark" class="form-label">File to benchmark</label>
+            <input class="form-control" id="file-to-benchmark" type="file">
+            <div class="valid-feedback">Uploaded successfully</div>
+            <div class="invalid-feedback">Upload failed</div>
           </div>
+
+
           <div class="mb-3">
-            <label for="formFileSm" class="form-label">Truth key (correct transcription)</label>
-            <input class="form-control" id="formFileSm" type="file">
+            <label for="formFileSm" class="form-label drop-key">Truth key (correct transcription)</label>
+            <input class="form-control" id="file-truth" type="file">
+            <div class="valid-feedback">Uploaded successfully</div>
+            <div class="invalid-feedback">Upload failed</div>
           </div>
         </div>
 
 
         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-3">
-          <button type="button" class="btn btn-primary btn-lg px-4 gap-3">
-            Submit
+          <button type="button" id="benchBtn" class="btn btn-primary btn-lg px-4 gap-3">
+            Benchmark
           </button> 
         </div>
         
       </div>
     </div>
 
-    <div class="b-example-divider"></div>
-
-    <body>
-      <div class="aligner">
-        <div id="drop"><h2>Drop files here!</h2></div>
-        <div id="list">
-          <h2>Uploaded Files:</h2>
-        </div>
-      </div>
-
+    <!-- <div class="b-example-divider"></div> -->
 
     <script type="text/javascript">
-      let drop = document.getElementById("drop");
-      let list = document.getElementById("list");
+      let fileName;
+      let truthName;
+
+      let drop = document.getElementById("file-to-benchmark");
+      let truth = document.getElementById("file-truth");
+      let button = document.getElementById("benchBt");
+
       let basePath = "{{base_path}}"; // filled in by the lambda before serving this page
       let uploadBaseUrl = basePath + "api/file/";
 
-      // Do nothing on drag events
-      function cancel(e) {
-        e.preventDefault();
-        return false;
-      }
-
-      // Upload on drop events
-      function handleDrop(e) {
-        e.preventDefault();
-        let dt = e.dataTransfer;
-        let files = dt.files;
+      // Upload on change
+      function handleFileChange(e) {
+        let files = this.files
+        console.log("files: " + files);
         for (let i = 0; i < files.length; i++) {
           let file = files[i];
           let reader = new FileReader();
@@ -121,15 +103,10 @@
               body: new Blob([reader.result], { type: file.type }),
             }).then((response) => {
               if (response.ok) {
-                let uploadedFileNode = document.createElement("div");
-                uploadedFileNode.innerHTML = file.name;
-                list.appendChild(uploadedFileNode);
+                drop.classList.add("is-valid");
+                fileName = file.name;
               } else {
-                alert(
-                  "Error uploading [" +
-                    file.name +
-                    "]. Max upload size is ~4MB."
-                );
+                drop.classList.add("is-invalid");
               }
             });
           });
@@ -138,10 +115,41 @@
         return false;
       }
 
-      // Listen to events
-      drop.addEventListener("dragenter", cancel);
-      drop.addEventListener("dragover", cancel);
-      drop.addEventListener("drop", handleDrop);
+      function handleTruthChange(e) {
+        let files = this.files
+        console.log("files: " + files);
+        for (let i = 0; i < files.length; i++) {
+          let file = files[i];
+          let reader = new FileReader();
+          reader.addEventListener("loadend", function (e) {
+            fetch(uploadBaseUrl + file.name, {
+              method: "POST",
+              body: new Blob([reader.result], { type: file.type }),
+            }).then((response) => {
+              if (response.ok) {
+                truth.classList.add("is-valid");
+                truthName = file.name;
+              } else {
+                truth.classList.add("is-invalid");
+              }
+            });
+          });
+          reader.readAsArrayBuffer(file);
+        }
+        return false;
+      }
+
+      function handleButtonClick() {
+        req = {
+          "file_to_transcribe": fileName,
+          "truth_key": truthName
+        }
+        console.log(req);
+      }
+
+      drop.addEventListener("change", handleFileChange);
+      truth.addEventListener("change", handleTruthChange);
+      button.addEventListener("click", handleButtonClick);
     </script>
 
     <!-- Bootstrap Bundle with Popper -->
