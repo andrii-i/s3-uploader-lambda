@@ -85,7 +85,7 @@
 
       let drop = document.getElementById("file-to-benchmark");
       let truth = document.getElementById("file-truth");
-      let button = document.getElementById("benchBt");
+      let button = document.getElementById("benchBtn");
 
       let basePath = "{{base_path}}"; // filled in by the lambda before serving this page
       let uploadBaseUrl = basePath + "api/file/";
@@ -93,7 +93,6 @@
       // Upload on change
       function handleFileChange(e) {
         let files = this.files
-        console.log("files: " + files);
         for (let i = 0; i < files.length; i++) {
           let file = files[i];
           let reader = new FileReader();
@@ -117,7 +116,6 @@
 
       function handleTruthChange(e) {
         let files = this.files
-        console.log("files: " + files);
         for (let i = 0; i < files.length; i++) {
           let file = files[i];
           let reader = new FileReader();
@@ -143,8 +141,9 @@
         req = {
           "file_to_transcribe": fileName,
           "truth_key": truthName
-        }
+        };
         console.log(req);
+        alert(JSON.stringify(req));
       }
 
       drop.addEventListener("change", handleFileChange);
